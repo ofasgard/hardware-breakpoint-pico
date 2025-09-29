@@ -31,10 +31,10 @@ void go() {
 }
 
 // These header files must be included AFTER go() to ensure it's the first symbol in the PIC.
-#include "loader.h"
-#include "loaderdefs.h"
-#include "picorun.h"
-#include "resolve_eat.h"
+#include "headers/loader.h"
+#include "headers/loaderdefs.h"
+#include "headers/picorun.h"
+#include "headers/resolve_eat.h"
 
 void findNeededFunctions(WIN32FUNCS * funcs) {
 	// Note that we resolve WIN32 APIs using ROR13 hashes of the function names, i.e. "VirtualAlloc" is 0x91AFCA54.
