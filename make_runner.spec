@@ -1,4 +1,4 @@
-name "Link the hardware breakpoint PICO with a simple PICO runner to make a blob of executable shellcode.
+name "Link the hardware breakpoint PICO with a simple PICO runner to make a blob of executable shellcode."
 author "Calz0ne"
 
 x64:
