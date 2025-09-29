@@ -1,14 +1,14 @@
 # Hardware Breakpoint PICO
 
-XXX
+A proof-of-concept hardware breakpoint hooker, implemented as a PICO for Crystal Palace.
 
 The source code is divided up into 3 files:
 
-- **breakpoint_hook.c**: Contains the PICO's entrypoint and breakpoint hooking logic. Merged with `payload.c` to create the PICO.
-- **payload.c**: Contains the function that is exected when the breakpoint is triggered. Merged with `breakpoint_hook.c` to create the PICO.
+- **breakpoint_hook.c**: Contains the PICO's entrypoint and breakpoint hooking logic. 
+- **payload.c**: Contains the code that is executed when the breakpoint actually triggers.
 - **runner.c**: A simple PICO runner that puts a breakpoint on `VirtualFree()` just before it gets called. Intended to demonstrated the functionality.
 
-Run `make build` to compile and link the PICO and runner. It will work out of the box as long as you have a `crystal-palace` directory with all of the CPL executables. The resulting shellcode will be written to `out/runner.bin`, and will hook `VirtualFree()` to pop up a dialog box.
+Run `make build` to compile and link the PICO and runner. It will work out of the box as long as you have MinGW GCC and a `crystal-palace` directory with all of the CPL executables. The resulting shellcode will be written to `out/runner.bin`, and hooks `VirtualFree()` to pop up a dialog box when executed.
 
 This is still kind of a work in progress. TODO:
 
