@@ -1,3 +1,5 @@
 crystal-palace/
 bin/
-out.bin
+out/
+hwbp_pico.o
+runner.bin

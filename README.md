@@ -8,7 +8,7 @@ The source code is divided up into 3 files:
 - **payload.c**: Contains the function that is exected when the breakpoint is triggered. Merged with `breakpoint_hook.c` to create the PICO.
 - **runner.c**: A simple PICO runner that puts a breakpoint on `VirtualFree()` just before it gets called. Intended to demonstrated the functionality.
 
-Run `make build` to compile and link the PICO and runner. It will work out of the box as long as you have a `crystal-palace` directory with all of the CPL executables. The resulting shellcode will be written to `out.bin`, and will hook `VirtualFree()` to pop up a dialog box.
+Run `make build` to compile and link the PICO and runner. It will work out of the box as long as you have a `crystal-palace` directory with all of the CPL executables. The resulting shellcode will be written to `out/runner.bin`, and will hook `VirtualFree()` to pop up a dialog box.
 
 This is still kind of a work in progress. TODO:
 

@@ -68,7 +68,7 @@ void run_coff(WIN32FUNCS * funcs, char * srcPico) {
     funcs->VirtualFree(dstCode, 0, MEM_RELEASE);
 }
 
-char __PICODATA__[0] __attribute__((section("my_pico")));
+char __PICODATA__[0] __attribute__((section("hwbp_pico")));
   
 char * findAppendedPICO() {
     return (char *)&__PICODATA__;
