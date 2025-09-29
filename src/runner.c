@@ -15,19 +15,22 @@ typedef struct {
 
 // Function signatures, because the go() symbol must be first.
 char * findAppendedPICO();
-void run_coff(WIN32FUNCS * funcs, char * srcPico);
+void run_hwbp_pico(WIN32FUNCS * funcs, char * srcPico, char *target_addr);
 void findNeededFunctions(WIN32FUNCS * funcs);
 
 void go() {
-    // Resolve necessary WIN32 APIs.
+    	// Resolve necessary WIN32 APIs.
 	WIN32FUNCS funcs;
 	findNeededFunctions(&funcs);
 	
 	// Get a pointer to the section containing our PICO.
 	char *pico = findAppendedPICO();
 	
+	// For demonstrative purposes, we will set a breakpoint on VirtualFree();
+	char *target_addr = (char *) funcs.VirtualFree;
+	
 	// Run the PICO.
-	run_coff(&funcs, pico);
+	run_hwbp_pico(&funcs, pico, target_addr);
 }
 
 // These header files must be included AFTER go() to ensure it's the first symbol in the PIC.
@@ -46,7 +49,7 @@ void findNeededFunctions(WIN32FUNCS * funcs) {
  	funcs->VirtualFree   = (__typeof__(VirtualFree) *)   findFunctionByHash(hModule, VIRTUALFREE_HASH);
 }
 
-void run_coff(WIN32FUNCS * funcs, char * srcPico) {
+void run_hwbp_pico(WIN32FUNCS * funcs, char * srcPico, char *target_addr) {
     char        * dstCode;
     char        * dstData;
      
@@ -59,8 +62,7 @@ void run_coff(WIN32FUNCS * funcs, char * srcPico) {
     /* load our pico into our destination address, thanks! */
     PicoLoad((IMPORTFUNCS *)funcs, srcPico, dstCode, dstData);
   
-    /* Call our pico entry point using the hardcoded address of VirtualFree() for demo purposes! */
-    char *target_addr = (char *) funcs->VirtualFree;
+    /* Call our pico entry point using the provided address. */
     PicoEntryPoint(srcPico, dstCode)(target_addr);
   
     /* free everything... */
