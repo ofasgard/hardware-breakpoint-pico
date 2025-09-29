@@ -10,6 +10,8 @@ The source code is divided up into 3 files:
 
 Run `make build` to compile and link the PICO and runner. It will work out of the box as long as you have MinGW GCC and a `crystal-palace` directory with all of the CPL executables. The resulting shellcode will be written to `out/runner.bin`, and hooks `VirtualFree()` to pop up a dialog box when executed.
 
+![A screenshot of the PICO in action, triggering a dialog box](img/hwbp_pico.png)
+
 This is still kind of a work in progress. TODO:
 
 - Add support for breakpoint unhooking and cleanup.
