@@ -15,7 +15,6 @@ Run `make build` to compile and link the PICO and runner. It will work out of th
 This is still kind of a work in progress. TODO:
 
 - Replace `payload()` with something that doesn't allocate memory and thus cause a crash (not allowed from a VEH).
-- Pass ExceptionInfo to `payload()` so that it can manipulate the function call.
 - Implement something (page guard?) to invoke the unhooking logic
 - Write a more useful runner that doesn't rely on a hardcoded pointer, and allows you to specify what should be hooked instead.
 
