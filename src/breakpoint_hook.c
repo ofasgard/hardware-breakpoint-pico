@@ -5,7 +5,7 @@
 void payload (PEXCEPTION_POINTERS ExceptionInfo);
 
 void hook_process(DWORD pid, uintptr_t address);
-LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS ExceptionInfo);
+LONG WINAPI ExceptionHandler();
 
 WINBASEAPI BOOL WINAPI KERNEL32$GetThreadContext (HANDLE hThread, LPCONTEXT lpContext);
 WINBASEAPI BOOL WINAPI KERNEL32$SetThreadContext (HANDLE hThread, LPCONTEXT lpContext);
@@ -93,7 +93,7 @@ void unhook_process(DWORD pid) {
 
 LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS ExceptionInfo) {
 	if (ExceptionInfo->ExceptionRecord->ExceptionCode == STATUS_SINGLE_STEP) {
-		payload(ExceptionInfo);
+		ExceptionInfo->ContextRecord->Rip = payload;
 		
 		ExceptionInfo->ContextRecord->EFlags |= (1 << 16); // set resume flag
 		return EXCEPTION_CONTINUE_EXECUTION;
