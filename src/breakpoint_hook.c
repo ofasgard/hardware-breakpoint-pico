@@ -2,7 +2,7 @@
 #include <processthreadsapi.h>
 #include <tlhelp32.h>
 
-void payload (PEXCEPTION_POINTERS ExceptionInfo);
+void payload();
 
 void hook_process(DWORD pid, uintptr_t address);
 LONG WINAPI ExceptionHandler();
@@ -93,6 +93,7 @@ void unhook_process(DWORD pid) {
 
 LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS ExceptionInfo) {
 	if (ExceptionInfo->ExceptionRecord->ExceptionCode == STATUS_SINGLE_STEP) {
+		ExceptionInfo->ContextRecord->Rdi = ExceptionInfo->ContextRecord->Rip;
 		ExceptionInfo->ContextRecord->Rip = payload;
 		
 		ExceptionInfo->ContextRecord->EFlags |= (1 << 16); // set resume flag
