@@ -5,7 +5,10 @@ void unhook_process(DWORD pid);
 WINBASEAPI DWORD WINAPI KERNEL32$GetCurrentProcessId();
 WINBASEAPI int WINAPI USER32$MessageBoxW (HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType);
 WINBASEAPI BOOL WINAPI KERNEL32$VirtualFree(LPVOID lpAddress, SIZE_T dwSize, DWORD  dwFreeType);
- 
+
+// The payload function should have the same signature as the function you're hooking.
+// That way, you can reuse the arguments in registers and the stack to seamlessly call the original function when you're done.
+
 BOOL payload (LPVOID lpAddress, SIZE_T dwSize, DWORD dwFreeType) {
     // Put whatever behaviour you want to inject here.
     USER32$MessageBoxW(NULL, L"Hello from a PICO!", L"PICO", MB_OKCANCEL);
