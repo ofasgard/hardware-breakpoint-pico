@@ -1,6 +1,6 @@
 # Hardware Breakpoint PICO
 
-A proof-of-concept hardware breakpoint hooker, implemented as a PICO for Crystal Palace.
+A proof-of-concept hardware breakpoint hooker, implemented as a PICO for Crystal Palace. With this PICO, you can place a hardware breakpoint on an arbitrary address (such as the entrypoint of a WIN32 API) that will invoke your desired payload the next time that address is executed.
 
 The source code is divided up into 3 files:
 
