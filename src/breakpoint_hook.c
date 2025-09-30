@@ -48,6 +48,19 @@ BOOL set_hardware_breakpoint(HANDLE thd, uintptr_t address) {
 	return KERNEL32$SetThreadContext(thd, &context);
 }
 
+BOOL unset_hardware_breakpoint(HANDLE thd) {
+	CONTEXT context = { .ContextFlags = CONTEXT_DEBUG_REGISTERS };
+	KERNEL32$GetThreadContext(thd, &context);
+	
+	// unset the breakpoint address
+	context.Dr0 = 0ull;
+	
+	// unset bit 0 of dr7
+	context.Dr7 &= ~(1ull << 0);
+	
+	return KERNEL32$SetThreadContext(thd, &context);
+}
+
 void hook_process(DWORD pid, uintptr_t address) {
 	HANDLE h = KERNEL32$CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 	THREADENTRY32 te = { .dwSize = sizeof(THREADENTRY32) };
@@ -63,9 +76,27 @@ void hook_process(DWORD pid, uintptr_t address) {
 	KERNEL32$CloseHandle(h);
 }
 
+void unhook_process(DWORD pid) {
+	HANDLE h = KERNEL32$CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+	THREADENTRY32 te = { .dwSize = sizeof(THREADENTRY32) };
+	KERNEL32$Thread32First(h, &te);
+	
+	do {
+		if (te.th32OwnerProcessID == pid && (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(te.th32OwnerProcessID))) {
+			HANDLE thd = KERNEL32$OpenThread(THREAD_ALL_ACCESS, FALSE, te.th32ThreadID);
+			unset_hardware_breakpoint(thd);
+		}
+	} while (KERNEL32$Thread32Next(h, &te));
+	
+	KERNEL32$CloseHandle(h);
+}
+
 LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS ExceptionInfo) {
 	if (ExceptionInfo->ExceptionRecord->ExceptionCode == STATUS_SINGLE_STEP) {
 		payload();
+		DWORD pid = KERNEL32$GetCurrentProcessId();
+		unhook_process(pid);
+		
 		ExceptionInfo->ContextRecord->EFlags |= (1 << 16); // set resume flag
 		return EXCEPTION_CONTINUE_EXECUTION;
 	}
