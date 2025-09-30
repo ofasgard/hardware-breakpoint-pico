@@ -94,8 +94,6 @@ void unhook_process(DWORD pid) {
 LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS ExceptionInfo) {
 	if (ExceptionInfo->ExceptionRecord->ExceptionCode == STATUS_SINGLE_STEP) {
 		payload();
-		DWORD pid = KERNEL32$GetCurrentProcessId();
-		unhook_process(pid);
 		
 		ExceptionInfo->ContextRecord->EFlags |= (1 << 16); // set resume flag
 		return EXCEPTION_CONTINUE_EXECUTION;
