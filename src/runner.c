@@ -15,8 +15,9 @@ typedef struct {
 
 // Function signatures, because the go() symbol must be first.
 char * findAppendedPICO();
-void run_hwbp_pico(WIN32FUNCS * funcs, char * srcPico, char *target_addr);
 void findNeededFunctions(WIN32FUNCS * funcs);
+char *findTargetFunction(WIN32FUNCS * funcs, unsigned int module_hash, unsigned int function_hash);
+void run_hwbp_pico(WIN32FUNCS * funcs, char * srcPico, char *target_addr);
 
 void go() {
     	// Resolve necessary WIN32 APIs.
@@ -26,8 +27,8 @@ void go() {
 	// Get a pointer to the section containing our PICO.
 	char *pico = findAppendedPICO();
 	
-	// For demonstrative purposes, we will set a breakpoint on VirtualFree();
-	char *target_addr = (char *) funcs.VirtualFree;
+	// For demonstrative purposes, we will set a breakpoint on KERNEL32$VirtualFree();
+	char *target_addr = findTargetFunction(&funcs, 0x6A4ABC5B, 0x30633AC);
 	
 	// Run the PICO.
 	run_hwbp_pico(&funcs, pico, target_addr);
@@ -38,6 +39,11 @@ void go() {
 #include "headers/loaderdefs.h"
 #include "headers/picorun.h"
 #include "headers/resolve_eat.h"
+
+char *findTargetFunction(WIN32FUNCS * funcs, unsigned int module_hash, unsigned int function_hash) {
+	char * hModule = (char *)findModuleByHash(module_hash);
+	return findFunctionByHash(hModule, function_hash);
+}
 
 void findNeededFunctions(WIN32FUNCS * funcs) {
 	// Note that we resolve WIN32 APIs using ROR13 hashes of the function names, i.e. "VirtualAlloc" is 0x91AFCA54.
