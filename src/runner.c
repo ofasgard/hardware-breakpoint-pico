@@ -19,6 +19,9 @@ void findNeededFunctions(WIN32FUNCS * funcs);
 char *findTargetFunction(WIN32FUNCS * funcs, unsigned int module_hash, unsigned int function_hash);
 void run_hwbp_pico(WIN32FUNCS * funcs, char * srcPico, char *target_addr);
 
+unsigned int TARGET_MODULE_HASH __attribute__((section(".rdata")));
+unsigned int TARGET_FUNCTION_HASH __attribute__((section(".rdata")));
+
 void go() {
     	// Resolve necessary WIN32 APIs.
 	WIN32FUNCS funcs;
@@ -27,8 +30,8 @@ void go() {
 	// Get a pointer to the section containing our PICO.
 	char *pico = findAppendedPICO();
 	
-	// For demonstrative purposes, we will set a breakpoint on KERNEL32$VirtualFree();
-	char *target_addr = findTargetFunction(&funcs, 0x6A4ABC5B, 0x30633AC);
+	// Resolve a symbol based on the ROR13 hashes passed to the runner. This is our target address.
+	char *target_addr = findTargetFunction(&funcs, TARGET_MODULE_HASH, TARGET_FUNCTION_HASH);
 	
 	// Run the PICO.
 	run_hwbp_pico(&funcs, pico, target_addr);

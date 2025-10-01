@@ -8,6 +8,7 @@ WINBASEAPI BOOL WINAPI KERNEL32$VirtualFree(LPVOID lpAddress, SIZE_T dwSize, DWO
 
 // The payload function should have the same signature as the function you're hooking.
 // That way, you can reuse the arguments in registers and the stack to seamlessly call the original function when you're done.
+// The example below matches the signature of `VirtualFree()`, since that's what the default runner hooks.
 
 BOOL payload (LPVOID lpAddress, SIZE_T dwSize, DWORD dwFreeType) {
     // Put whatever behaviour you want to inject here.

@@ -8,7 +8,7 @@ The source code is divided up into 3 files.
 
 **payload.c**: Contains the payload function that is executed when the breakpoint triggers. Because RIP is redirected to your payload function, it will receive all of the same arguments as the function you're hooking. Therefore, it should have the same function signature if you want to seamlessly invoke the original function when you're done.
 
-**runner.c**: A basic PICO runner that compiles to PIC (shellcode). Mostly taken directly from the Tradecraft Garden. Intended to demonstrate the functionality of the PICO: it invokes the PICO to put a breakpoint on `VirtualFree()` just before it gets called. 
+**runner.c**: A basic PICO runner that compiles to PIC (shellcode). Mostly taken directly from the Tradecraft Garden. Intended to demonstrate the functionality of the PICO: it sets a breakpoint on whatever symbol you specify (via ROR13 hash) with the `$TMH` (target module hash) and `$TFH` (target function hash) parameters. When linked with the provided Makefile, it places a breakpoint on the `VirtualFree()` API just before it gets called. 
 
 To compile and link the PICO and runner, run `make build`. It will work out of the box as long as you have MinGW GCC and a `crystal-palace` directory with all of the CPL executables needed. The resulting shellcode will be written to `out/runner.bin`, and it seamlessly hooks `VirtualFree()` to pop up a dialog box when executed.
 
