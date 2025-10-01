@@ -10,10 +10,24 @@ The source code is divided up into 3 files.
 
 **runner.c**: A basic PICO runner that compiles to PIC (shellcode). Mostly taken directly from the Tradecraft Garden. Intended to demonstrate the functionality of the PICO: it sets a breakpoint on whatever symbol you specify (via ROR13 hash) with the `$TMH` (target module hash) and `$TFH` (target function hash) parameters. When linked with the provided Makefile, it places a breakpoint on the `VirtualFree()` API just before it gets called. 
 
-To build the PICO (`breakpoint_hook.c` and `payload.c`), run `make pico`. To build the runner (`runner.c`) and link it with the PICO, run `make runner`. Both commands should work as long as you have MinGW GCC and a `crystal-palace` directory with all of the CPL executables needed. 
+To build the PICO by itself, run `make pico`. To build the example runner and link it with the PICO, run `make runner`. Both commands will work as long as you have MinGW GCC and a `crystal-palace` directory with all of the CPL executables needed. 
 
 The resulting shellcode will be written to `out/runner.bin`, and it seamlessly hooks `VirtualFree()` to pop up a dialog box when executed:
 
 ![A screenshot of the PICO in action, triggering a dialog box](img/hwbp_pico.png)
+
+## Using this PICO
+
+The example PIC that is compiled when you run `make runner` hooks the `VirtualFree()` function by default. If you want to hook a different function, simply pass a different target address when invoking the PICO's entrypoint.
+
+For example, if you wanted to hook `VirtualAlloc()` instead (using Raphael Mudge's PICO runner):
+
+```c
+PicoEntryPoint(srcPico, dstCode)(addr_of_virtual_alloc);
+```
+
+To hook seamlessly, you should modify `payload.c` to ensure that the `payload()` function matches the signature of the function you're hooking (and invokes it when you're done with your shenanigans). The example payload in `payload.c` matches the function signature of `VirtualFree()`, so you'll need to adjust it when you hook other functions.
+
+## Thanks
 
 Thanks to Raphael Mudge for [Crystal Palace](https://tradecraftgarden.org/crystalpalace.html) and the PICO runner code, Rastamouse for a [blog post](https://rastamouse.me/modular-pic-c2-agents-reprise/) that helped me understand how to merge COFF files with Crystal Palace, and Rad98 for [this implementation of hardware breakpoint hooking](https://github.com/rad9800/hwbp4mw) that I used as a template for this PICO.
