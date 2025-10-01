@@ -10,7 +10,9 @@ The source code is divided up into 3 files.
 
 **runner.c**: A basic PICO runner that compiles to PIC (shellcode). Mostly taken directly from the Tradecraft Garden. Intended to demonstrate the functionality of the PICO: it sets a breakpoint on whatever symbol you specify (via ROR13 hash) with the `$TMH` (target module hash) and `$TFH` (target function hash) parameters. When linked with the provided Makefile, it places a breakpoint on the `VirtualFree()` API just before it gets called. 
 
-To compile and link the PICO and runner, run `make build`. It will work out of the box as long as you have MinGW GCC and a `crystal-palace` directory with all of the CPL executables needed. The resulting shellcode will be written to `out/runner.bin`, and it seamlessly hooks `VirtualFree()` to pop up a dialog box when executed.
+To build the PICO (`breakpoint_hook.c` and `payload.c`), run `make pico`. To build the runner (`runner.c`) and link it with the PICO, run `make runner`. Both commands should work as long as you have MinGW GCC and a `crystal-palace` directory with all of the CPL executables needed. 
+
+The resulting shellcode will be written to `out/runner.bin`, and it seamlessly hooks `VirtualFree()` to pop up a dialog box when executed:
 
 ![A screenshot of the PICO in action, triggering a dialog box](img/hwbp_pico.png)
 
