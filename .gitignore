@@ -1,0 +1,5 @@
+crystal-palace/
+lib/libtcg/bin
+lib/libtcg/*.zip
+bin/
+out/
