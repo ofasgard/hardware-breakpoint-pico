@@ -23,7 +23,8 @@ The example PIC that is compiled when you run `make runner` hooks the `VirtualFr
 For example, if you wanted to hook `VirtualAlloc()` instead (using Raphael Mudge's PICO runner):
 
 ```c
-PicoEntryPoint(srcPico, dstCode)(addr_of_virtual_alloc);
+BREAKPOINT_HOOK_PICO entryPoint = (BREAKPOINT_HOOK_PICO) PicoEntryPoint(srcPico, dstCode);
+entryPoint(addr_of_virtual_alloc);
 ```
 
 To hook seamlessly, you should modify `payload.c` to ensure that the `payload()` function matches the signature of the function you're hooking (and invokes it when you're done with your shenanigans). The example payload in `payload.c` matches the function signature of `VirtualFree()`, so you'll need to adjust it when you hook other functions.

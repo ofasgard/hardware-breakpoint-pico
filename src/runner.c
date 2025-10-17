@@ -1,4 +1,5 @@
 #include <windows.h>
+#include "breakpoint_hook.h"
 #include "tcg.h"
 
 WINBASEAPI HMODULE WINAPI KERNEL32$LoadLibraryA(LPCSTR lpLibFileName);
@@ -32,7 +33,8 @@ void run_hwbp_pico(WIN32FUNCS * funcs, char * srcPico, char *target_addr) {
     PicoLoad((IMPORTFUNCS *)funcs, srcPico, dstCode, dstData);
   
     /* Call our pico entry point using the provided address. */
-    PicoEntryPoint(srcPico, dstCode)(target_addr);
+    BREAKPOINT_HOOK_PICO entryPoint = (BREAKPOINT_HOOK_PICO) PicoEntryPoint(srcPico, dstCode);
+    entryPoint(target_addr);
   
     /* free everything... */
     funcs->VirtualFree(dstData, 0, MEM_RELEASE);
