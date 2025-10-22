@@ -1,11 +1,9 @@
 #include <windows.h>
 #include <processthreadsapi.h>
 #include <tlhelp32.h>
+#include "cpltest.h"
 
 void payload();
-
-void hook_process(DWORD pid, uintptr_t address);
-LONG WINAPI ExceptionHandler();
 
 WINBASEAPI BOOL WINAPI KERNEL32$GetThreadContext (HANDLE hThread, LPCONTEXT lpContext);
 WINBASEAPI BOOL WINAPI KERNEL32$SetThreadContext (HANDLE hThread, LPCONTEXT lpContext);
@@ -16,15 +14,6 @@ WINBASEAPI BOOL WINAPI KERNEL32$CloseHandle(HANDLE hObject);
 WINBASEAPI HANDLE WINAPI KERNEL32$CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID);
 WINBASEAPI BOOL WINAPI KERNEL32$Thread32First(HANDLE hSnapshot, LPTHREADENTRY32 lpte);
 WINBASEAPI BOOL WINAPI KERNEL32$Thread32Next(HANDLE hSnapshot, LPTHREADENTRY32 lpte);
-
-void go(char *target_addr) {
-	// Set up the VEH.
-	KERNEL32$AddVectoredExceptionHandler(1, ExceptionHandler);
-	
-	// Add the breakpoint on the specified address.
-	DWORD pid = KERNEL32$GetCurrentProcessId();
-	hook_process(pid, (uintptr_t) target_addr);
-}
 
 BOOL set_hardware_breakpoint(HANDLE thd, uintptr_t address) {
 	CONTEXT context = { .ContextFlags = CONTEXT_DEBUG_REGISTERS };
@@ -61,34 +50,38 @@ BOOL unset_hardware_breakpoint(HANDLE thd) {
 	return KERNEL32$SetThreadContext(thd, &context);
 }
 
-void hook_process(DWORD pid, uintptr_t address) {
+BOOL hook_process(DWORD pid, uintptr_t address) {
 	HANDLE h = KERNEL32$CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 	THREADENTRY32 te = { .dwSize = sizeof(THREADENTRY32) };
 	KERNEL32$Thread32First(h, &te);
 	
+	BOOL result = TRUE;
 	do {
 		if (te.th32OwnerProcessID == pid && (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(te.th32OwnerProcessID))) {
 			HANDLE thd = KERNEL32$OpenThread(THREAD_ALL_ACCESS, FALSE, te.th32ThreadID);
-			set_hardware_breakpoint(thd, address);
+			result = result && set_hardware_breakpoint(thd, address);
 		}
 	} while (KERNEL32$Thread32Next(h, &te));
 	
 	KERNEL32$CloseHandle(h);
+	return result;
 }
 
-void unhook_process(DWORD pid) {
+BOOL unhook_process(DWORD pid) {
 	HANDLE h = KERNEL32$CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 	THREADENTRY32 te = { .dwSize = sizeof(THREADENTRY32) };
 	KERNEL32$Thread32First(h, &te);
 	
+	BOOL result = TRUE;
 	do {
 		if (te.th32OwnerProcessID == pid && (te.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(te.th32OwnerProcessID))) {
 			HANDLE thd = KERNEL32$OpenThread(THREAD_ALL_ACCESS, FALSE, te.th32ThreadID);
-			unset_hardware_breakpoint(thd);
+			result = result && unset_hardware_breakpoint(thd);
 		}
 	} while (KERNEL32$Thread32Next(h, &te));
 	
 	KERNEL32$CloseHandle(h);
+	return result;
 }
 
 LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS ExceptionInfo) {
@@ -99,4 +92,48 @@ LONG WINAPI ExceptionHandler(PEXCEPTION_POINTERS ExceptionInfo) {
 		return EXCEPTION_CONTINUE_EXECUTION;
 	}
 	return EXCEPTION_CONTINUE_SEARCH;
+}
+
+void go_pico(char *target_addr) {
+	// Set up the VEH.
+	KERNEL32$AddVectoredExceptionHandler(1, ExceptionHandler);
+	
+	// Add the breakpoint on the specified address.
+	DWORD pid = KERNEL32$GetCurrentProcessId();
+	hook_process(pid, (uintptr_t) target_addr);
+}
+
+#ifdef CPLTESTS
+void test_hook_address() {
+	BOOL result;
+	DWORD pid = KERNEL32$GetCurrentProcessId();
+	result = hook_process(pid, payload);
+	ASSERT(result == TRUE, "test_hook_address: Failed to set breakpoint on all threads");
+	unhook_process(pid);
+}
+
+void test_unhook_address() {
+	BOOL result;
+	DWORD pid = KERNEL32$GetCurrentProcessId();
+	result = hook_process(pid, payload);
+	ASSERT(result == TRUE, "test_unhook_address: Failed to hook the address in the first place");
+	result = unhook_process(pid);
+	ASSERT(result == TRUE, "test_unhook_address: Failed to unset breakpoint on all threads");
+}
+
+void go_tests() {
+	TESTFUNCS tests = initTests();
+	addTest(&tests, test_hook_address);
+	addTest(&tests, test_unhook_address);
+	runTests(&tests);
+	freeTests(&tests);
+}
+#endif
+
+void go(char *target_addr) {
+	#ifdef CPLTESTS
+	go_tests();
+	#else
+	go_pico(target_addr);
+	#endif
 }
