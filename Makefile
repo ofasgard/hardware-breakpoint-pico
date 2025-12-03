@@ -24,6 +24,7 @@ tester: dirs libtcg libcpltest runner crystal-palace/ make_tester.spec src/runne
 
 clean: bin out lib/libtcg/ lib/LibCPLTest/
 	rm -f bin/*.o
+	rm -f out/*.o
 	rm -f out/*.bin
 	cd lib/libtcg && make clean
 	cd lib/LibCPLTest && make clean
