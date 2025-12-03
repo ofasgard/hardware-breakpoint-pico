@@ -14,8 +14,8 @@ typedef struct {
     __typeof__(VirtualFree)    * VirtualFree;
 } WIN32FUNCS;
 
-char * resolve(DWORD modHash, DWORD funcHash) {
-    char * hModule = (char *)findModuleByHash(modHash);
+FARPROC resolve(DWORD modHash, DWORD funcHash) {
+    HANDLE hModule = findModuleByHash(modHash);
     return findFunctionByHash(hModule, funcHash);
 }
 

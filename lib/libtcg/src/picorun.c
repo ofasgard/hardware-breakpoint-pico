@@ -46,6 +46,7 @@ typedef struct {
 #define PICO_INST_GPA        0x4
 #define PICO_INST_PATCH_DIFF 0x5
 #define PICO_INST_PATCH_FUNC 0x6
+#define PICO_INST_EXPORT     0x7
 
 #define PICO_PATCH_TEXT_TEXT 0x0
 #define PICO_PATCH_TEXT_BASE 0x1
@@ -75,11 +76,41 @@ typedef struct {
 	int total;
 } PICO_DIRECTIVE_COPY;
 
+typedef struct {
+	PICO_DIRECTIVE_HDR hdr;
+	int tag;
+	int offset;
+} PICO_DIRECTIVE_EXPORT;
+
 typedef void (*PICOMAIN_FUNC)(char * arg);
+
+PICOMAIN_FUNC PicoGetExport(char * src, char * base, int tag) {
+	PICO_DIRECTIVE_HDR    * entry;
+	PICO_DIRECTIVE_EXPORT * export;
+	PICO_HDR              * hdr = (PICO_HDR *)src;
+
+	entry = FIRST_PICO_DIRECTIVE(hdr);
+	while (TRUE) {
+		if (entry->type == PICO_INST_EXPORT) {
+			export = (PICO_DIRECTIVE_EXPORT *)entry;
+			if (export->tag == tag)
+				return (PICOMAIN_FUNC)( base + export->offset );
+		}
+		else if (entry->type == PICO_INST_COMPLETE) {
+			return NULL;
+		}
+
+		entry = NEXT_PICO_DIRECTIVE(entry);
+	}
+}
 
 PICOMAIN_FUNC PicoEntryPoint(char * src, char * base) {
 	PICO_HDR * hdr = (PICO_HDR *)src;
-	return (PICOMAIN_FUNC)( (char *)base + hdr->entryAddress );
+
+	if (hdr->entryAddress >= 0)
+		return (PICOMAIN_FUNC)( (char *)base + hdr->entryAddress );
+	else
+		return NULL;
 }
 
 int PicoCodeSize(char * src) {

@@ -14,7 +14,7 @@ x64:
 
 	# Load the HWBP pico and link it as "hwbp_pico".
 	load "out/hwbp_pico.o"
-	make object
+	make object +optimize
 	export
 	link "hwbp_pico"
 	

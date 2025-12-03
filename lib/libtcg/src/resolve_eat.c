@@ -33,7 +33,7 @@
  * Walk the Export Address Table to resolve functions by hash
  */
 
-char * findModuleByHash(DWORD moduleHash) {
+HANDLE findModuleByHash(DWORD moduleHash) {
 	_PEB                 * pPEB;
 	LDR_DATA_TABLE_ENTRY * pEntry;
 	char                 * name;
@@ -72,7 +72,7 @@ char * findModuleByHash(DWORD moduleHash) {
 
 		/* if we have a match, return it */
 		if (hashValue == moduleHash)
-			return pEntry->DllBase;
+			return (HANDLE)pEntry->DllBase;
 
 		/* next entry */
 		pEntry = (LDR_DATA_TABLE_ENTRY *)pEntry->InMemoryOrderModuleList.Flink;
@@ -81,7 +81,7 @@ char * findModuleByHash(DWORD moduleHash) {
 	return NULL;
 }
 
-void * findFunctionByHash(char * src, DWORD wantedFunction) {
+FARPROC findFunctionByHash(HANDLE src, DWORD wantedFunction) {
 	DLLDATA                  data;
 	IMAGE_DATA_DIRECTORY   * exportTableHdr;
 	IMAGE_EXPORT_DIRECTORY * exportDir;
@@ -111,7 +111,7 @@ void * findFunctionByHash(char * src, DWORD wantedFunction) {
 			exportAddress  += *exportOrdinal;
 
 			/* and... there-in is our virtual address to the actual ptr we want */
-			return PTR_OFFSET(src, *exportAddress);
+			return (FARPROC)PTR_OFFSET(src, *exportAddress);
 		}
 
 		exportName++;

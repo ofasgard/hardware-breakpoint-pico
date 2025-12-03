@@ -15,7 +15,7 @@
  * endorse or promote products derived from this software without specific prior written
  * permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
  * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -26,10 +26,18 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// used by both the Pico Loader and DLL loader
 typedef struct {
 	__typeof__(LoadLibraryA)   * LoadLibraryA;
 	__typeof__(GetProcAddress) * GetProcAddress;
 } IMPORTFUNCS;
+
+// linker intrinsic to map a function hash to a hook registered via Crystal Palace
+FARPROC __resolve_hook(DWORD funcHash);
+
+/*
+ * Structs used by our DLL loader
+ */
 
 #define PTR_OFFSET(x, y) ( (void *)(x) + (ULONG)(y) )
 #define DEREF( name )*(UINT_PTR *)(name)
@@ -41,6 +49,12 @@ typedef struct {
 } DLLDATA;
 
 /*
+ * utility functions
+ */
+DWORD adler32sum(unsigned char * buffer, DWORD length);
+DWORD ror13hash(const char * c);
+
+/*
  * printf-style debugging.
  */
 void dprintf(char * format, ...);
@@ -50,6 +64,7 @@ void dprintf(char * format, ...);
  */
 typedef void (*PICOMAIN_FUNC)(char * arg);
 
+PICOMAIN_FUNC PicoGetExport(char * src, char * base, int tag);
 PICOMAIN_FUNC PicoEntryPoint(char * src, char * base);
 int PicoCodeSize(char * src);
 int PicoDataSize(char * src);
@@ -58,8 +73,8 @@ void PicoLoad(IMPORTFUNCS * funcs, char * src, char * dstCode, char * dstData);
 /*
  * Resolve functions by walking the export address table
  */
-void * findFunctionByHash(char * src, DWORD wantedFunction);
-char * findModuleByHash(DWORD moduleHash);
+FARPROC findFunctionByHash(HANDLE hModule, DWORD wantedFunctionHash);
+HANDLE findModuleByHash(DWORD moduleHash);
 
 /*
  * DLL parsing and loading functions
